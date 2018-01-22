@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+
+<project name="MyAnt" default="run" basedir=".">
+	
+	
+	<property name="app.home" 		value="." />
+	<property name="app.name" 		value="MyAnt" />
+	<property name="app.version" 	value="v1.0" />
+	<property name="mainClass" 	value="fr.isima.myant.MainClass" />
+    <property name="src.dir"	value="${app.home}/src" />
+    <property name="build.dir" 	value="${app.home}/build" />
+    <property name="dist.dir" 	value="${app.home}/dist" />
+    <property name="docs.dir" 	value="${app.home}/docs" />
+    <property name="test.dir" 	value="${app.home}/tests" />
+    <property name="report.dir" value="${app.home}/report" />  
+	
+	
+	<target name="init">
+		<available file="${src.dir}" property="src.dir.present"/>
+		<echo message="${src.dir.present}" />
+		<available file="${test.dir}" property="test.dir.present"/>
+		<echo message="${src.dir.present}" />
+	</target>
+	
+	
+	<path id="run.classpath">
+		<pathelement location="${build.dir}"/>
+	</path>
+	
+	<path id="archive.classpath">
+		<pathelement location="${dist.dir}\${app.name}-${app.version}.jar"/>
+	</path>
+	
+	
+	<target name="clean" depends="init">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+        <delete dir="${report.dir}" />
+    </target>
+
+	
+    <target name="prepare" depends="clean">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+        <mkdir dir="${report.dir}" />
+    </target> 
+
+	
+    <target name="compile" depends="prepare" >
+    	<javac includeantruntime="false" srcdir="${src.dir}" destdir="${build.dir}" >
+    		
+    	</javac>
+    </target>
+	
+	
+	<target name="package" depends="compile">
+		<tstamp>
+		   	<format property="build.date" pattern="EEEE, d MMMM yyyy"/>
+			<format property="build.time" pattern="hh:mm a"/>
+		</tstamp>
+	   	<jar destfile="${dist.dir}\${app.name}-${app.version}.jar" basedir="${build.dir}">
+	     	<manifest>
+	        	<attribute name="Main-Test" value="${mainClass}" />
+	     		<attribute name="Specification-Title" value="${app.name}"/>
+	     		<attribute name="Specification-Version" value="${app.version}"/>
+	     		<attribute name="Implementation-Version" value="${app.version}- a ${build.time} le ${build.date} "/> 
+	       	</manifest>
+	   	</jar>
+	</target>
+	
+	
+	<target name="docs" depends="package">
+	        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+	            <fileset dir="${src.dir}">
+	                <include name="**/**.java" />
+	            </fileset>
+	        </javadoc>
+	</target>
+	
+	
+	<target name="run" depends="docs" >
+		<java classname="${mainClass}" >
+		   	<classpath refid="archive.classpath"/>
+		</java>
+	</target>
+	
+	<!--	
+	<target name="run" depends="compile" >
+	   	<java classname="${mainClass}" >
+	   		<classpath refid="run.classpath"/>
+		</java>
+	</target>
+	
+	
+
+    
+
+    
+
+    <target name="junit" depends="compile">
+        <junit printsummary="on" fork="true" haltonfailure="yes">
+        	<classpath refid="classpath"/>
+        	<classpath refid="cobertura.classpath"/>
+        	<classpath location="bin"/>
+        	<classpath location="${instruments.dir}"/>
+            <formatter type="xml" />
+            <batchtest todir="${test.report.dir}">
+                <fileset dir="${src.dir}">
+                    <include name="**/DivTest4.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+	
+	<target name="report" depends="junit">
+        <delete dir="${test.report.dir}/html"/>
+        <mkdir dir="${test.report.dir}/html"/>
+        <junitreport todir="${test.report.dir}">
+                <fileset dir="${test.report.dir}">
+                        <include name="**/TEST-*.xml"/>
+                </fileset>
+                <report format="frames" todir="${test.report.dir}/html"/>
+        </junitreport>
+    </target>
+	
+-->
+	
+	 
+</project>

@@ -1,0 +1,178 @@
+<?xml version="1.0" ?>
+<project name="tax-calculator" default="package">
+    
+    <property file="${basedir}/local.properties"/>
+    <property name="javac.debug" value="off"/>
+    <property name="src.dir" location="src" />
+    <property name="build.dir" location="build"/>
+    <property name="tests.dir" location="test" />
+    <property name="build.classes.dir" location="${build.dir}/classes" />
+    <property name="test.classes.dir" location="${build.dir}/test-classes" />
+    <property name="lib" location="lib" />
+    <property name="dist.dir" location="dist" />
+    
+    <property name="reports.dir" location="reports" />
+    <property name="reports.data.dir" location="reports/xml" />
+    <property name="reports.html.dir" location="reports/html" />
+    <property name="reports.javadoc" location="reports/javadoc" />
+    
+    <property name="project.version" value="1.0" />
+    <property name="project.name" value="${ant.project.name}" />
+    
+    <target name="display-properties">
+        <echoproperties />
+        <echo>Build directory (build.dir) = ${build.dir}</echo>		
+    </target>
+    
+    <path id="compile.classpath">
+        <fileset dir="${lib}" includes="*.jar" />
+    </path>
+    
+    <path id="test.compile.classpath">
+        <path refid="compile.classpath" />
+        <pathelement path="${build.classes.dir}" />
+    </path>
+    
+    <path id="test.classpath">
+        <path refid="test.compile.classpath" />
+        <pathelement path="${test.classes.dir}" />
+    </path>
+    
+    <target name="init">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${build.classes.dir}" />
+        <mkdir dir="${test.classes.dir}" />
+        <mkdir dir="${dist.dir}" />
+        <mkdir dir="${reports.data.dir}" />
+        <mkdir dir="${reports.html.dir}" />
+    </target>
+    
+    <target name="compile" depends="init" description="Compile Java code">
+        <echo message="Debug: ${javac.debug}" />
+        <javac srcdir="${src.dir}" 
+               destdir="${build.classes.dir}" 
+               classpathref="compile.classpath" 
+               debug="${javac.debug}"/>
+    </target>
+    
+    
+    <property name="tests.suite" value="com.objis.demoant.test.AllTests" />
+    
+    <target name="test-basic" depends="compile-tests" description="Lance tests unitaires">
+        <junit>       
+            <classpath refid="test.classpath" />
+            <test name="${tests.suite}" />
+        </junit>
+    </target>
+    
+    <target name="compile-tests" depends="compile" description="Compile Unit Tests">
+        <javac srcdir="${tests.dir}" 
+               destdir="${test.classes.dir}"
+               debug="on">
+            <classpath refid="test.compile.classpath" />
+        </javac>
+    </target>
+    
+    <target name="test" depends="compile-tests" description="Run unit tests">
+        <junit printsummary="true" haltonfailure="false" fork="true"  failureproperty="test.failures">
+            <assertions>
+                <enable/>
+            </assertions>         
+            <classpath refid="test.classpath" />
+            <formatter type="plain" />
+            <formatter type="xml" />
+            <batchtest todir="${reports.data.dir}" >
+                <fileset dir="${test.classes.dir}" includes="**/*Test.class" />
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="test.report" depends="test" 
+            description="Generate HTML unit test reports">
+        <junitreport todir="${reports.data.dir}">
+            <fileset dir="${reports.data.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames"  todir="${reports.html.dir}"/>
+        </junitreport>
+        
+        <fail if="test.failures" message="Poblemes lors des tests." />
+        
+    </target>
+    
+    
+    <target name="javadoc" depends="compile,init" description="Generate JavaDocs.">        
+        <javadoc sourcepath="${src.dir}"
+                 destdir="${reports.javadoc}"
+                 author="true"
+                 version="true"
+                 use="true"
+                 linksource="true"             
+                 windowtitle="${ant.project.name} API">            
+            <classpath>
+                <path refid="compile.classpath" />
+                <pathelement path="${build.classes.dir}" />
+            </classpath>             
+            <doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
+            <bottom><![CDATA[<i>Copyright &#169; 2009 Tous droits reserves.</i>]]></bottom>             
+        </javadoc>        
+    </target>
+    
+    <target name="package" depends="compile" description="Generate JAR file">
+        <tstamp>
+            <format property="build.date" pattern="EEEE, d MMMM yyyy"/>
+            <format property="build.time" pattern="hh:mm a"/>
+        </tstamp>
+        <jar destfile="${dist.dir}/${project.name}-${project.version}.jar" >
+            <fileset dir="${build.classes.dir}"/>
+            <fileset dir="src/resources"/>
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Specification-Title" value="${project.name}"/>
+                <attribute name="Specification-Version" value="${project.version}"/>
+                <attribute name="Specification-Vendor" value="Objis"/>
+                <attribute name="Implementation-Title" value="common"/>
+                <attribute name="Implementation-Version" value="${project.version}- a ${build.time} le ${build.date} "/> 
+                <attribute name="Implementation-Vendor" value="Objis"/>
+            </manifest>            
+        </jar>
+    </target>
+    
+    
+    <property name="web.dir" location="web" />
+    <property name="dist.dir" location="dist" />
+    
+    <target name="war" depends="compile" description="Generate WAR file">
+        <war destfile="${dist.dir}/${project.name}-${project.version}.war"
+             duplicate="fail"
+             webxml="${web.dir}/WEB-INF/web.xml">        
+            <fileset dir="${web.dir}" />        
+            <classes dir="${build.classes.dir}"/>        
+            <lib dir="${lib}">
+                <include name="*.jar" />
+            </lib>
+        </war>
+    </target>
+    
+    <property name="tomcat.install.dir" location="${user.home}/servers/tomcat/apache-tomcat-5.5.23" />
+    
+    <target name="local.deploy" depends="war" description="Deploy to local Tomcat instance">
+        <copy file="${dist.dir}/${project.name}-${project.version}.war" 
+              todir="${tomcat.install.dir}/webapps" />    
+    </target>
+    
+    <property name="web.dir" location="/var/www/public_html" />
+    
+    <target name="local.documentation" depends="javadoc" description="Deploy documentation to local web server">
+        <copy todir="${web.dir}/${project.name}/javadoc">
+            <fileset dir="${reports.javadoc"/>
+        </copy>    
+    </target>
+    
+    <target name="clean" description="Deletes generated directories">
+        <delete dir="${build.dir}" />
+        <delete dir="${dist.dir}" />
+        <delete dir="${reports.dir}" />
+    </target>
+    
+</project>
