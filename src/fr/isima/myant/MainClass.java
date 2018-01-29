@@ -7,6 +7,7 @@ public class MainClass {
 	public static void main(String[] args) {
 		
 		Project myProject = new Project("myBuild.txt");
+		myProject.execute();
 		
 	}
 

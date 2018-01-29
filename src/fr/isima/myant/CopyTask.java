@@ -13,6 +13,10 @@ public class CopyTask extends Task{
 		System.out.println("CopyTask : From " + from + " To " + to);
 	}
 	
+	public CopyTask() {
+		
+	}
+	
 	public String getFrom() {
 		return from;
 	}
@@ -27,6 +31,10 @@ public class CopyTask extends Task{
 	
 	public void setTo(String to) {
 		this.to = to;
+	}
+	
+	public void execute() {
+		System.out.println("CopyTask : From " + from + " To " + to);
 	}
 	
 	

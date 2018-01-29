@@ -9,6 +9,10 @@ public class EchoTask extends Task{
 		this.message=msg;
 		System.out.println("EchoTask : Message : " +message);
 	}
+	
+	public EchoTask() {
+		
+	}
 
 	public String getMessage() {
 		return message;
@@ -16,5 +20,9 @@ public class EchoTask extends Task{
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+	
+	public void execute() {
+		System.out.println("EchoTask : Message : " +message);
 	}
 }

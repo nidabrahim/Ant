@@ -9,6 +9,10 @@ public class MkdirTask extends Task{
 		this.dir = rep;
 		System.out.println("MkdirTask : Dir : " + dir);
 	}
+	
+	public MkdirTask() {
+		
+	}
 
 	public String getDir() {
 		return dir;
@@ -16,5 +20,9 @@ public class MkdirTask extends Task{
 
 	public void setDir(String dir) {
 		this.dir = dir;
+	}
+	
+	public void execute() {
+		System.out.println("MkdirTask : Dir : " + dir);
 	}
 }
